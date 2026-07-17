@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Google Sheets API Test</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .section { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .success { color: green; }
+    .error { color: red; }
+    pre { background: #222; color: #0f0; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Google Sheets API Test</h1>
+
+  <div class="section">
+    <h2>1️⃣ Load Libraries</h2>
+    <button onclick="loadLibraries()">Load sheet-api.js + localStorage-proxy.js</button>
+    <div id="libStatus"></div>
+  </div>
+
+  <div class="section">
+    <h2>2️⃣ Test API Connection</h2>
+    <button onclick="testConnection()">Test Web App URL</button>
+    <div id="connStatus"></div>
+  </div>
+
+  <div class="section">
+    <h2>3️⃣ Test GET (Read Sheets)</h2>
+    <label>Sheet Name: <input type="text" id="sheetName" value="Queues"></label>
+    <button onclick="testGet()">GET Data</button>
+    <pre id="getResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>4️⃣ Test POST (Write Sheets)</h2>
+    <button onclick="testPost()">POST Test Data to TimeStamps</button>
+    <pre id="postResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>5️⃣ Test localStorage Sync</h2>
+    <button onclick="testLocalStorage()">Save to localStorage → Should sync to Sheets</button>
+    <pre id="localStorageResult"></pre>
+  </div>
+
+  <script src="sheet-api.js"></script>
+  <script src="localStorage-proxy.js"></script>
+
+  <script>
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx6JiVoTONMcRszVSod9RhveBq0ruZzwFRngFHGBb5EQ5Q4RfWOscHcG3Iur5kG29eG/exec";
+
+    function log(elementId, message, isError = false) {
+      const el = document.getElementById(elementId);
+      el.className = isError ? 'error' : 'success';
+      el.innerHTML += `<div>${message}</div>`;
+      console.log(message);
+    }
+
+    function loadLibraries() {
+      const status = document.getElementById('libStatus');
+      status.innerHTML = '';
+
+      if (window.sheetAPI) {
+        log('libStatus', '✅ sheet-api.js loaded');
+      } else {
+        log('libStatus', '❌ sheet-api.js NOT loaded', true);
+      }
+
+      // Check in 1 second for proxy
+      setTimeout(() => {
+        const proxied = localStorage.setItem.toString().includes('syncToSheets');
+        if (proxied) {
+          log('libStatus', '✅ localStorage-proxy.js loaded');
+        } else {
+          log('libStatus', '❌ localStorage-proxy.js NOT loaded', true);
+        }
+      }, 1000);
+    }
+
+    async function testConnection() {
+      const status = document.getElementById('connStatus');
+      status.innerHTML = '<div>Testing...</div>';
+
+      try {
+        const response = await fetch(SHEET_API_URL + "?sheet=Queues");
+        const result = await response.json();
+
+        if (result.success) {
+          log('connStatus', '✅ Web App Connection OK');
+          log('connStatus', `Response: ${JSON.stringify(result, null, 2)}`);
+        } else {
+          log('connStatus', `❌ Error: ${result.error}`, true);
+        }
+      } catch (error) {
+        log('connStatus', `❌ Connection Failed: ${error.message}`, true);
+      }
+    }
+
+    async function testGet() {
+      const status = document.getElementById('getResult');
+      const sheetName = document.getElementById('sheetName').value;
+      status.innerHTML = '<div>Fetching...</div>';
+
+      try {
+        const data = await sheetAPI.getSheet(sheetName);
+        status.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        status.innerHTML = `<pre class="error">Error: ${error.message}</pre>`;
+      }
+    }
+
+    async function testPost() {
+      const status = document.getElementById('postResult');
+      status.innerHTML = '<div>Posting...</div>';
+
+      const testData = [{
+        "Queue No. (Q)": "TEST001",
+        "Actual Arrival Time": new Date().toLocaleTimeString(),
+        "Helper Name": "Test Helper"
+      }];
+
+      try {
+        const result = await sheetAPI.saveSheet("TimeStamps", testData);
+        status.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+      } catch (error) {
+        status.innerHTML = `<pre class="error">Error: ${error.message}</pre>`;
+      }
+    }
+
+    function testLocalStorage() {
+      const status = document.getElementById('localStorageResult');
+      status.innerHTML = '<div>Testing localStorage sync...</div>';
+
+      const key = "driver_stamps_2026-01-15_Q001";
+      const value = JSON.stringify({
+        arrivalTime: new Date().toLocaleTimeString(),
+        unloadStart: "09:30"
+      });
+
+      localStorage.setItem(key, value);
+      status.innerHTML = `<pre>Saved to localStorage:
+${key} = ${value}
+
+Check Google Sheets TimeStamps tab for sync!</pre>`;
+    }
+
+    // Auto-load on page load
+    window.addEventListener('load', loadLibraries);
+  </script>
+</body>
+</html>
