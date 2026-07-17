@@ -173,14 +173,15 @@ class SheetAPI {
 // ============================================
 // Global instance
 // ============================================
-const sheetAPI = new SheetAPI();
+window.sheetAPI = new SheetAPI();
+console.log("✅ SheetAPI initialized");
 
 // ============================================
 // Auto-sync pending data when online
 // ============================================
 window.addEventListener("online", () => {
   console.log("🔄 Going online - syncing pending data...");
-  sheetAPI.syncPending();
+  window.sheetAPI.syncPending();
 });
 
 window.addEventListener("offline", () => {
