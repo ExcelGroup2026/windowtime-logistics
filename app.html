@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WindowTime - Logistics Tracking System</title>
+</head>
+<body>
+  <!-- Load the main bundled app -->
+  <iframe id="appFrame" style="width: 100%; height: 100vh; border: none;"></iframe>
+
+  <!-- Load Sheet API before app initializes -->
+  <script src="sheet-api.js"></script>
+
+  <script>
+    // Load the bundled app into iframe
+    document.getElementById('appFrame').src = 'index.html';
+
+    // Inject sheet-api.js into the bundled app's window
+    document.getElementById('appFrame').onload = function() {
+      const iframeDoc = document.getElementById('appFrame').contentDocument ||
+                        document.getElementById('appFrame').contentWindow.document;
+
+      // Create script tag for sheet-api.js in iframe
+      const script = iframeDoc.createElement('script');
+      script.src = 'sheet-api.js';
+      iframeDoc.head.appendChild(script);
+
+      console.log("✅ Sheet API loaded into app");
+    };
+
+    // Optional: Expose sheetAPI globally for debugging
+    window.sheetAPI = sheetAPI;
+  </script>
+</body>
+</html>
