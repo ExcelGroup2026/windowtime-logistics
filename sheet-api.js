@@ -68,7 +68,8 @@ class SheetAPI {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", SHEET_API_URL, true);
-      xhr.setRequestHeader("Content-Type", "application/json");
+      // Don't set Content-Type - let browser handle it to avoid CORS preflight
+      // xhr.setRequestHeader("Content-Type", "application/json");
 
       xhr.onload = () => {
         try {
