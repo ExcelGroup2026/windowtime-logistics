@@ -63,36 +63,44 @@ class SheetAPI {
       rows: rows
     };
 
-    try {
-      const response = await fetch(SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json"
+    const self = this;
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", SHEET_API_URL, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      xhr.onload = () => {
+        try {
+          const result = JSON.parse(xhr.responseText);
+          if (result.success) {
+            self.isOnline = true;
+            self.updateSyncTime();
+            console.log(`✅ Saved ${result.data.count} rows to ${sheetName}`);
+            self.showNotification(`✅ Synced ${result.data.count} rows to ${sheetName}`, "success");
+            resolve(result.data);
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.warn(`❌ Failed to parse response:`, error.message);
+          self.isOnline = false;
+          self.saveToLocalStorage(sheetName, rows);
+          self.showNotification(`⚠️ Offline: Data saved locally. Will sync when online.`, "warning");
+          resolve({ message: "Saved locally (offline mode)", count: rows.length });
         }
-      });
+      };
 
-      const result = await response.json();
+      xhr.onerror = () => {
+        console.warn(`❌ Failed to save ${sheetName}: Network error`);
+        self.isOnline = false;
+        self.saveToLocalStorage(sheetName, rows);
+        self.showNotification(`⚠️ Offline: Data saved locally. Will sync when online.`, "warning");
+        resolve({ message: "Saved locally (offline mode)", count: rows.length });
+      };
 
-      if (result.success) {
-        this.isOnline = true;
-        this.updateSyncTime();
-        console.log(`✅ Saved ${result.data.count} rows to ${sheetName}`);
-        this.showNotification(`✅ Synced ${result.data.count} rows to ${sheetName}`, "success");
-        return result.data;
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.warn(`❌ Failed to save ${sheetName}:`, error.message);
-      this.isOnline = false;
-
-      // Fallback: save to localStorage
-      this.saveToLocalStorage(sheetName, rows);
-      this.showNotification(`⚠️ Offline: Data saved locally. Will sync when online.`, "warning");
-
-      return { message: "Saved locally (offline mode)", count: rows.length };
-    }
+      xhr.send(JSON.stringify(payload));
+    });
   }
 
   // ==================== Helper: Cache ====================
