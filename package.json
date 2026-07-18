@@ -1,0 +1,13 @@
+{
+  "name": "windowtime-logistics",
+  "version": "1.0.0",
+  "description": "WindowTime - Logistics Window Time Tracking",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s public -l 3000",
+    "build": "echo 'No build needed'"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
