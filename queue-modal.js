@@ -4,7 +4,7 @@
 
 console.log('🔲 Queue Modal: Initializing...');
 
-// Wait for DOM to be ready
+// Create and inject immediately
 function initQueueModal() {
   // Create modal HTML
   const modalHTML = `
@@ -127,14 +127,25 @@ function initQueueModal() {
   console.log('💡 Click "📤 Upload Queue" button to open form');
 }
 
-// Initialize immediately
-if (document.body) {
+// Initialize immediately (don't wait for DOMContentLoaded)
+try {
   initQueueModal();
-} else {
-  // Wait for body if not ready
-  document.addEventListener('DOMContentLoaded', initQueueModal);
-  setTimeout(initQueueModal, 1000); // Fallback
+  console.log('✅ Queue modal initialized immediately');
+} catch (e) {
+  console.warn('⚠️ Initial init failed:', e.message);
 }
+
+// Retry after delay in case DOM wasn't ready
+setTimeout(() => {
+  try {
+    if (!document.getElementById('queue-upload-btn')) {
+      initQueueModal();
+      console.log('✅ Queue modal initialized on retry');
+    }
+  } catch (e) {
+    console.warn('⚠️ Retry init failed:', e.message);
+  }
+}, 500);
 
 // Also try to inject button into sidebar if available
 setTimeout(() => {
