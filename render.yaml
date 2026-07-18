@@ -3,4 +3,4 @@ services:
     name: windowtime-logistics
     staticSite:
       buildCommand: echo "No build needed"
-      publishDirectory: .
+      publishDirectory: public
