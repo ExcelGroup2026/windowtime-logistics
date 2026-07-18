@@ -2,170 +2,96 @@
 // localStorage Proxy - Intercept and sync with Google Sheets
 // ============================================
 
-// Wait for sheetAPI to be ready
-function waitForSheetAPI() {
-  return new Promise((resolve) => {
-    if (window.sheetAPI) {
-      resolve();
-    } else {
-      const interval = setInterval(() => {
-        if (window.sheetAPI) {
-          clearInterval(interval);
-          resolve();
+console.log('[PROXY] START - localStorage proxy loading');
+
+// Override immediately before anything else
+const origSetItem = Storage.prototype.setItem;
+const origGetItem = Storage.prototype.getItem;
+
+console.log('[PROXY] Original methods saved');
+
+Storage.prototype.setItem = function(key, value) {
+  console.log('[PROXY] >>> setItem:', key, '=', (value + '').substring(0, 50));
+
+  // Save to localStorage first
+  origSetItem.call(this, key, value);
+
+  // Skip syncing for metadata keys to prevent infinite loops
+  if (key.startsWith('windowtime_') || !key.startsWith('queue_')) {
+    console.log('[PROXY] Skipping sync for non-queue key:', key);
+    return;
+  }
+
+  // Sync to sheets if available
+  if (window.sheetAPI && typeof window.sheetAPI.saveSheet === 'function') {
+    syncToSheets(key, value).catch(err => {
+      console.log('[PROXY] Sync error:', err.message);
+    });
+  } else {
+    console.log('[PROXY] sheetAPI not ready yet for:', key);
+  }
+};
+
+console.log('[PROXY] setItem override installed');
+
+function syncToSheets(key, value) {
+  return new Promise((resolve, reject) => {
+    try {
+      // Only sync queue_ keys
+      if (!key.startsWith('queue_')) {
+        console.log('[PROXY] Skipping non-queue key:', key);
+        resolve();
+        return;
+      }
+
+      // Parse the value
+      let data;
+      try {
+        data = typeof value === 'string' ? JSON.parse(value) : value;
+      } catch (e) {
+        console.log('[PROXY] Failed to parse value for:', key);
+        reject(e);
+        return;
+      }
+
+      // Extract queue number from key
+      const parts = key.split('_');
+      const queueNo = parts[1] || 'unknown';
+
+      // Prepare row data - ensure all values are strings or primitives
+      const row = {
+        'Queue No. (Q)': queueNo,
+        ...data
+      };
+
+      // Log what we're about to send
+      console.log('[PROXY] Row before send:', row);
+      console.log('[PROXY] Row keys:', Object.keys(row));
+
+      // Ensure all values are properly formatted
+      for (const key in row) {
+        if (row.hasOwnProperty(key)) {
+          const val = row[key];
+          console.log(`  [PROXY] ${key} = ${typeof val} = ${String(val).substring(0, 50)}`);
         }
-      }, 100);
+      }
+
+      // Send to sheets
+      window.sheetAPI.saveSheet('TimeStamps', [row])
+        .then(() => {
+          console.log('[PROXY] ✅ Synced to TimeStamps sheet for queue:', queueNo);
+          resolve();
+        })
+        .catch(err => {
+          console.log('[PROXY] ❌ Failed to sync:', err.message);
+          reject(err);
+        });
+
+    } catch (err) {
+      console.log('[PROXY] Exception in syncToSheets:', err.message);
+      reject(err);
     }
   });
 }
 
-// Initialize proxy after sheetAPI is loaded
-waitForSheetAPI().then(() => {
-  console.log("✅ Sheet API ready - initializing localStorage proxy");
-
-  // Store original localStorage
-  const originalStorage = { ...localStorage };
-
-  // Override localStorage.setItem to sync with Google Sheets
-  const originalSetItem = Storage.prototype.setItem;
-  Storage.prototype.setItem = function(key, value) {
-    // Always save to localStorage first (for offline mode)
-    originalSetItem.call(this, key, value);
-
-    // Try to sync with Google Sheets
-    syncToSheets(key, value);
-  };
-
-  // Override localStorage.getItem to fallback from Google Sheets
-  const originalGetItem = Storage.prototype.getItem;
-  Storage.prototype.getItem = function(key) {
-    // First try localStorage (cached data)
-    const cached = originalGetItem.call(this, key);
-    if (cached) {
-      return cached;
-    }
-
-    // If not in cache, try to fetch from Google Sheets (sync mode)
-    return syncFromSheets(key);
-  };
-
-  // ==================== SYNC TO SHEETS ====================
-  async function syncToSheets(key, value) {
-    try {
-      // Parse key to determine sheet and data
-      const data = parseKey(key, value);
-      if (!data) return;
-
-      // POST to Google Sheets
-      await sheetAPI.saveSheet(data.sheet, data.rows);
-      console.log(`✅ Synced to ${data.sheet}:`, data.rows);
-    } catch (error) {
-      console.warn(`⚠️ Failed to sync to sheets:`, error.message);
-      // Fallback is already in localStorage
-    }
-  }
-
-  // ==================== SYNC FROM SHEETS ====================
-  async function syncFromSheets(key) {
-    try {
-      // Parse key to determine sheet
-      const sheet = getSheetFromKey(key);
-      if (!sheet) return null;
-
-      // GET from Google Sheets
-      const data = await sheetAPI.getSheet(sheet);
-      console.log(`📥 Fetched from ${sheet}:`, data);
-
-      // Cache in localStorage
-      const cacheKey = sheet + "_cache";
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-
-      // Return matching row
-      return findMatchingRow(key, data);
-    } catch (error) {
-      console.warn(`⚠️ Failed to fetch from sheets:`, error.message);
-      return null;
-    }
-  }
-
-  // ==================== HELPER: Parse Key ====================
-  function parseKey(key, value) {
-    // Example: "driver_stamps_2026-01-15_Q001"
-    if (key.startsWith("driver_stamps_")) {
-      const [, , date, queueId] = key.split("_");
-      try {
-        const obj = JSON.parse(value);
-        return {
-          sheet: "TimeStamps",
-          rows: [{
-            "Queue No. (Q)": queueId,
-            "Actual Arrival Time": obj.arrivalTime || "",
-            "Loading/Unloading Start Time": obj.unloadStart || "",
-            "Completed Time": obj.completed || "",
-            "Departure Time": obj.departure || "",
-            "Destination": obj.destination || "",
-            "Arrival at Destination Time": obj.arriveDestination || "",
-            "Departure from Destination Time": obj.departDestination || "",
-            "Helper Name": obj.helperName || ""
-          }]
-        };
-      } catch (e) {
-        return null;
-      }
-    }
-
-    if (key.startsWith("helper_name_")) {
-      const [, , date, queueId] = key.split("_");
-      return {
-        sheet: "TimeStamps",
-        rows: [{
-          "Queue No. (Q)": queueId,
-          "Helper Name": value
-        }]
-      };
-    }
-
-    return null;
-  }
-
-  // ==================== HELPER: Get Sheet From Key ====================
-  function getSheetFromKey(key) {
-    if (key.startsWith("driver_stamps_") || key.startsWith("helper_name_")) {
-      return "TimeStamps";
-    }
-    return null;
-  }
-
-  // ==================== HELPER: Find Matching Row ====================
-  function findMatchingRow(key, data) {
-    const [, , date, queueId] = key.split("_");
-
-    if (key.startsWith("driver_stamps_")) {
-      // Find and return driver stamps for this queue
-      const row = data.find(r => r["Queue No. (Q)"] === queueId);
-      if (row) {
-        return JSON.stringify({
-          arrivalTime: row["Actual Arrival Time"] || "",
-          unloadStart: row["Loading/Unloading Start Time"] || "",
-          completed: row["Completed Time"] || "",
-          departure: row["Departure Time"] || "",
-          destination: row["Destination"] || "",
-          arriveDestination: row["Arrival at Destination Time"] || "",
-          departDestination: row["Departure from Destination Time"] || "",
-          helperName: row["Helper Name"] || ""
-        });
-      }
-    }
-
-    if (key.startsWith("helper_name_")) {
-      // Find and return helper name for this queue
-      const row = data.find(r => r["Queue No. (Q)"] === queueId);
-      if (row) {
-        return row["Helper Name"] || "";
-      }
-    }
-
-    return null;
-  }
-
-  console.log("✅ localStorage proxy initialized - syncing with Google Sheets");
-});
+console.log('[PROXY] ✅✅✅ READY - localStorage setItem is now proxied to Google Sheets');

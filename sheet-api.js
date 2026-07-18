@@ -2,7 +2,8 @@
 // WindowTime - Google Sheets API Integration
 // ============================================
 
-const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbw0LmbFNLjVaA4lx8SHjUv-f3cHoIkGMk0iPa-XJ5yzybYoyGLMmDPqMHuabti_zylU/exec";
+// Production Google Sheets API
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx3Pv4m4jEOY3hRPVSRP35gLIvxRsCLiQfduRJBqvdrbARxsbV7Y6lSqm8ofbZ-vdIc/exec";
 
 // Sheet names
 const SHEETS = {
