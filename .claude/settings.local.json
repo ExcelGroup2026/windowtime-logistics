@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(python -m http.server 8000 --bind 127.0.0.1)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "Bash(rm -f dashboard-main.html app-dashboard.html queue-management.html)",
+      "Bash(git reset *)"
+    ]
+  }
+}

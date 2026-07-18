@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WindowTime - Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-content">
+        <div class="logo-section">
+          <div class="logo-icon">🚚</div>
+          <h1 class="logo-title">WindowTime</h1>
+          <p class="logo-subtitle">Logistics Window Time Tracking</p>
+        </div>
+        <div class="sidebar-info">
+          <h2>ระบบจัดการเวลา<br>การขนส่งสินค้า</h2>
+          <p>ติดตามเวลาขนส่งสินค้า ตรวจสอบสถานะ และจัดการ Delivery Windows อย่างมีประสิทธิภาพ</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-content">
+          <h1 class="app-title">Control Tower</h1>
+          <p class="app-subtitle">ศูนย์ควบคุมการจัดส่ง</p>
+        </div>
+        <div class="user-menu">
+          <span id="userName">ยินดีต้อนรับ</span>
+          <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <!-- User Info -->
+        <div class="welcome-section">
+          <h2>ยินดีต้อนรับเข้าสู่ระบบ 👋</h2>
+          <div id="userInfo" class="user-info-card">
+            <p><strong>อีเมล:</strong> <span id="userEmail">-</span></p>
+            <p><strong>บทบาท:</strong> <span id="userRole">-</span></p>
+            <p><strong>เวลาเข้าสู่ระบบ:</strong> <span id="loginTime">-</span></p>
+          </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="stats-summary">
+          <div class="stat-card">
+            <div class="stat-label">Total Deliveries</div>
+            <div class="stat-value">10</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Completed</div>
+            <div class="stat-value completed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value in-progress">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Scheduled</div>
+            <div class="stat-value scheduled">7</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <h3>การกระทำด่วน</h3>
+          <div class="action-buttons">
+            <button class="action-btn">📅 ดูตารางการส่ง</button>
+            <button class="action-btn">🚚 ตรวจสอบสถานะ</button>
+            <button class="action-btn">📊 รายงาน</button>
+            <button class="action-btn">⚙️ ตั้งค่า</button>
+          </div>
+        </div>
+
+        <!-- Features Info -->
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>🎯 Delivery Management</h4>
+            <p>จัดการและติดตามการส่งสินค้าแบบเรียลไทม์</p>
+          </div>
+          <div class="feature-card">
+            <h4>📊 Analytics</h4>
+            <p>ดูรายงานและการวิเคราะห์ประสิทธิภาพ</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔔 Notifications</h4>
+            <p>รับการแจ้งเตือนสำหรับการอัปเดตที่สำคัญ</p>
+          </div>
+          <div class="feature-card">
+            <h4>👥 User Management</h4>
+            <p>จัดการผู้ใช้และสิทธิ์การใช้งาน</p>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>WindowTime v1.0 | Delivery Management System</p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="script-dashboard.js"></script>
+</body>
+</html>
