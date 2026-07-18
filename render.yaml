@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: windowtime-logistics
+    staticSite:
+      buildCommand: echo "No build needed"
+      publishDirectory: .
