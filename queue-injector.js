@@ -2,8 +2,8 @@
 // Queue Input Injector - Inject form into bundled app
 // ============================================
 
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', function() {
+// Inject immediately (don't wait for DOMContentLoaded)
+function injectQueueForm() {
   console.log('📋 Queue Injector: Initializing...');
 
   // Create queue input container
@@ -237,4 +237,15 @@ document.addEventListener('DOMContentLoaded', function() {
       statusMsg.textContent = `❌ Error: ${error.message}`;
     }
   });
-});
+}
+
+// Call immediately
+injectQueueForm();
+
+// Also try again after a short delay for DOM readiness
+setTimeout(() => {
+  if (!document.getElementById('queue-injector-container')) {
+    console.log('📋 Retrying queue injection...');
+    injectQueueForm();
+  }
+}, 500);
