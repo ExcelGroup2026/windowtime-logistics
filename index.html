@@ -18,14 +18,9 @@
     </div>
   </noscript>
 
-  <!-- Google Sheets Integration -->
-  <script src="indexeddb-bridge.js?v=3"></script>
-  <script src="sheet-api.js?v=3"></script>
-  <script src="localStorage-proxy.js?v=3"></script>
-  <script src="comprehensive-save-interceptor.js?v=3"></script>
-  <script src="app-data-interceptor.js?v=1"></script>
-  <script src="data-saver.js?v=1"></script>
-  <script src="init-save-ui.js?v=1"></script>
+  <!-- Interceptor scripts removed: the app has native Google Sheets
+       integration. These scripts filled localStorage until quota errors
+       blocked the app's own saves. -->
 </head>
 <body>
   <div id="__bundler_thumbnail">
