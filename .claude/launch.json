@@ -3,10 +3,10 @@
   "configurations": [
     {
       "name": "windowtime-dev",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "C:/Python313/python.exe",
       "runtimeArgs": ["-m", "http.server", "8000", "--bind", "127.0.0.1"],
       "port": 8000,
-      "cwd": "C:\Logistics Tracker"
+      "cwd": "C:/Logistics Tracker"
     }
   ]
 }
