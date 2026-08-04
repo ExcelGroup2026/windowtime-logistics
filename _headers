@@ -1,0 +1,5 @@
+# Cloudflare Pages headers — keep the single-page app HTML always fresh
+/
+  Cache-Control: no-cache, must-revalidate
+/index.html
+  Cache-Control: no-cache, must-revalidate
